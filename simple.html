@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>chatapp</title>
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<style>
+    /* #output:; */
+</style>
+<body>
+
+<!-- コンテンツ表示画面 -->
+
+<div>
+    <div> 名前：<input type="text" id="uname"> </div>
+    <div>
+        <textarea id="text" cols="30" rows="10"></textarea>
+        <button id="send">送信</button>
+    </div>
+    <div><button id="remove">取り消し</button></div>
+    <div id="output" class='output' style="overflow: scroll; height: 300px;"></div>
+
+</div>
+<!--/ コンテンツ表示画面 -->
+
+
+
+<!-- JQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<!-- JQuery -->
+
+
+<!--** 以下Firebase **-->
+<script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js";
+    import { getDatabase, ref, push, set, onChildAdded, remove,onChildRemoved }
+    from "https://www.gstatic.com/firebasejs/9.1.0/firebase-database.js";
+  
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "hoge",
+      authDomain: "hoge",
+      projectId: "hoge",
+      storageBucket: "hoge",
+      messagingSenderId: "hoge",
+      appId: "hoge"
+    };
+  
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app); //RealtimeDBに接続
+    const dbRef =  ref(db,'dev245');  //RealtimeDB内の'dev245'を使う
+
+    // 送信処理
+    $('#send').on('click', function(){
+        const uname = $('#uname').val();
+        const text = $('#text').val();
+        // alert(uname+text); // 取得確認
+
+        const msg = {
+            uname: uname,
+            text: text,
+        };
+
+        // 保存のコード。ref=参照の意。firebaseに送る準備
+        const newPostRef = push(dbRef); // 送信準備
+        set(newPostRef, msg); // firebaseのDBに保存する
+
+        // 送信後に入力欄を空にする
+        $('#uname').val('');
+        $('#text').val('');
+
+        // カーソルをnameに当てる
+        $('#uname').focus();
+    });
+
+    // 送信処理（Enterボタンで送信されるようにする）
+    $('#text').on('keydown', function(e){ // 慣習的にeかeventを入れることになっている。イベントのデータを取り出している
+        console.log(e.keyCode);
+        if(e.keyCode == 13){   //EnterKey=13
+        const msg = {
+            uname: $("#uname").val(),
+            text: $("#text").val()
+        }
+        const newPostRef = push(dbRef); //ユニークKEYを生成
+        set(newPostRef, msg);           //"chat"にユニークKEYをつけてオブジェクトデータを登録
+
+        $('#uname').val('');
+        $('#text').val('');
+        $('#uname').focus();
+    }
+    })
+
+    // 削除
+    $('#remove').on('click', function(){
+        remove(dbRef);
+        // db.ref('dev245').child('-NHfpeIL55rPg6mTRTSD').remove();
+    });
+
+
+
+    // 受信処理を記述
+    onChildAdded(dbRef, function(data){
+        // ここからが受信処理
+        const msg = data.val();
+        // console.log(msg, '取得したデータの塊');
+        const key = data.key;
+        // console.log(key, 'key');
+
+        // es6のテンプレートリテラル
+        let h = `
+            <div class='msg'>
+                <p>${msg.uname}</p>
+                <p>${msg.text}</p>
+            </div>
+            `;
+        // htmlに埋め込み
+        $('#output').append(h);
+    })
+
+
+
+
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
